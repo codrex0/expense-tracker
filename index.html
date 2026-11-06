@@ -1,0 +1,419 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense Tracker</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--text:#16202f;--muted:#6b7689;--border:#e3e8f1;--primary:#4f46e5;--primary-2:#7c3aed;--primary-soft:#eef0ff;--danger:#e11d48;--warn:#f59e0b;--ok:#10b981;--shadow:0 12px 30px -16px rgba(15,23,42,.25);--radius:16px}
+[data-theme=dark]{--bg:#0b1120;--card:#121a2b;--text:#e6ebf5;--muted:#8b97ab;--border:#1f2a3f;--primary:#6366f1;--primary-2:#a855f7;--primary-soft:#1b2347;--shadow:0 12px 30px -16px rgba(0,0,0,.7)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Arabic","Noto Sans SC","Noto Sans KR","Noto Sans Devanagari",sans-serif;background:radial-gradient(1200px 500px at 10% -10%,var(--primary-soft),transparent 60%),var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+h1,h2,p{margin:0}h1{font-size:1.25rem}h2{font-size:1.05rem}
+.muted{color:var(--muted);font-size:.85rem}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.topbar{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--border)}
+.topbar-in{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding-top:14px;padding-bottom:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.3rem;overflow:hidden}
+.top-actions,.month-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--primary-soft);color:var(--primary);transition:transform .15s,filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 8px 18px -8px var(--primary)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn.danger{background:rgba(225,29,72,.12);color:var(--danger)}
+.btn.sm{padding:6px 10px;font-size:.8rem}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);display:grid;place-items:center;font-size:1.1rem;cursor:pointer;flex-shrink:0}
+.icon-btn:hover{border-color:var(--primary)}
+input,select,textarea{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+select.pick{width:auto;padding:8px 10px;font-size:.9rem}
+label{display:grid;gap:6px;font-size:.82rem;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:20px}
+@media(min-width:900px){.grid-2{grid-template-columns:1.4fr 1fr}.grid-2.eq{grid-template-columns:1fr 1fr}}
+.grid-2>.card{margin-bottom:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.stat .value{font-size:1.5rem;font-weight:700;margin:6px 0 8px}
+.stat .label{color:var(--muted);font-size:.85rem}
+.badge{display:inline-block;font-size:.75rem;padding:3px 8px;border-radius:99px;background:var(--border);color:var(--muted)}
+.badge.up{background:rgba(225,29,72,.12);color:var(--danger)}
+.badge.down{background:rgba(16,185,129,.15);color:#059669}
+.trend-bars{display:flex;gap:10px;align-items:flex-end;height:220px;margin-top:12px}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;cursor:pointer;min-width:0}
+.tb-val{font-size:.72rem;color:var(--muted);height:18px;white-space:nowrap}
+.tb-col{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.tb-col div{width:68%;min-height:3px;border-radius:8px 8px 4px 4px;background:linear-gradient(var(--primary),var(--primary-2));opacity:.4;transition:opacity .2s}
+.tb:hover .tb-col div,.tb.act .tb-col div{opacity:1}
+.tb-lbl{font-size:.75rem;color:var(--muted);height:20px;margin-top:4px;white-space:nowrap}
+.tb.act .tb-lbl{color:var(--primary);font-weight:700}
+.donut-wrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.donut{width:180px;height:180px;border-radius:50%;position:relative;flex-shrink:0;background:var(--border)}
+.donut::after{content:"";position:absolute;inset:28px;border-radius:50%;background:var(--card)}
+.donut-center{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30px}
+.donut-center small{color:var(--muted);font-size:.78rem}
+.donut-center strong{font-size:.95rem}
+.legend{flex:1;min-width:200px}
+.leg-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:.9rem;border-bottom:1px dashed var(--border)}
+.leg-row .amt{margin-inline-start:auto;font-weight:600}
+.leg-row .pct{color:var(--muted);width:44px;text-align:end}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.b-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.b-row:last-child{border-bottom:none}
+.b-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.b-name{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.b-name-input{padding:5px 8px;font-size:.92rem;font-weight:600;background:transparent;border:1px solid transparent;border-radius:8px}
+.b-name-input:hover{border-color:var(--border)}
+.b-name-input:focus{background:var(--bg)}
+.b-input{width:140px;padding:6px 10px;font-size:.85rem;text-align:end;flex-shrink:0}
+.progress{height:8px;border-radius:99px;background:var(--border);overflow:hidden}
+.progress>div{height:100%;border-radius:99px;background:var(--ok);transition:width .4s ease}
+.progress>div.warn{background:var(--warn)}
+.progress>div.over{background:var(--danger)}
+.b-meta{font-size:.78rem;color:var(--muted);margin-top:6px}
+.b-meta b{color:var(--danger);font-weight:600}
+.insights{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+.insights li{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:var(--bg);font-size:.9rem;line-height:1.45}
+.ins-ic{width:30px;height:30px;border-radius:9px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;flex-shrink:0;font-weight:700;font-size:.85rem}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:14px 0}
+@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.filters{grid-template-columns:1fr}}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:start;vertical-align:middle}
+th{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+tbody tr:hover{background:var(--bg)}
+td.amt,th.amt{text-align:end;font-weight:700;white-space:nowrap}
+td.acts{text-align:end;white-space:nowrap}
+td.acts .btn{margin-inline-start:4px}
+.chip{display:inline-block;padding:4px 10px;border-radius:99px;font-size:.76rem;font-weight:600;color:#fff}
+.note{color:var(--muted);font-size:.8rem;margin-top:3px}
+.empty{text-align:center;padding:36px 10px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+dialog{border:none;border-radius:20px;padding:0;width:min(520px,94vw);background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(15,23,42,.5);backdrop-filter:blur(3px)}
+.dlg-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.dlg-body{padding:20px 22px;display:grid;gap:14px}
+.dlg-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.two{grid-template-columns:1fr}}
+textarea{resize:vertical}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:#0f172a;color:#fff;padding:12px 18px;border-radius:12px;transition:.3s;pointer-events:none;font-size:.9rem;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(max-width:640px){.top-actions{width:100%;justify-content:space-between}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="wrap topbar-in">
+<div class="brand"><div class="logo" id="logo">$</div><div><h1 data-i18n="appName"></h1><p class="muted" data-i18n="appSub"></p></div></div>
+<div class="top-actions">
+<div class="month-nav">
+<button class="icon-btn" id="prevMonth" data-i18n-aria="prev">&#8249;</button>
+<select class="pick" id="mSel" data-i18n-aria="monthAria"></select>
+<select class="pick" id="ySel" data-i18n-aria="monthAria"></select>
+<button class="icon-btn" id="nextMonth" data-i18n-aria="next">&#8250;</button>
+<button class="btn ghost sm" id="todayBtn" data-i18n="today"></button>
+</div>
+<select class="pick" id="curSel" data-i18n-aria="curLabel"></select>
+<select class="pick" id="langSel" data-i18n-aria="langLabel"></select>
+<button class="icon-btn" id="themeBtn" data-i18n-aria="theme" data-i18n-title="theme">◐</button>
+<button class="btn primary" id="addBtn" data-i18n="add"></button>
+</div></div></header>
+<main class="wrap">
+<section class="stats" id="stats"></section>
+<div class="grid-2">
+<section class="card"><h2 data-i18n="trendT"></h2><p class="muted" data-i18n="trendS"></p><div id="trend"></div></section>
+<section class="card"><h2 data-i18n="donutT"></h2><p class="muted" data-i18n="donutS"></p>
+<div class="donut-wrap"><div class="donut" id="donut"><div class="donut-center" id="donutCenter"></div></div><div class="legend" id="legend"></div></div></section>
+</div>
+<div class="grid-2 eq">
+<section class="card"><h2 data-i18n="budgetT"></h2><p class="muted" data-i18n="budgetS"></p><div style="margin-top:12px" id="budgets"></div></section>
+<section class="card"><h2 data-i18n="insT"></h2><p class="muted" data-i18n="insS"></p><ul class="insights" id="insights"></ul></section>
+</div>
+<section class="card">
+<h2 data-i18n="listT"></h2><p class="muted" id="listMeta"></p>
+<div class="filters">
+<input type="search" id="search" data-i18n-ph="search">
+<select id="scope"><option value="month" data-i18n="sMonth"></option><option value="all" data-i18n="sAll"></option></select>
+<select id="catFilter"></select>
+<select id="sortBy"><option value="date-desc" data-i18n="sNew"></option><option value="date-asc" data-i18n="sOld"></option><option value="amount-desc" data-i18n="sHi"></option><option value="amount-asc" data-i18n="sLo"></option></select>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th data-i18n="cDate"></th><th data-i18n="cDesc"></th><th data-i18n="cCat"></th><th class="amt" data-i18n="cAmt"></th><th></th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+<div id="empty" class="empty" style="display:none"></div>
+</section>
+<section class="card">
+<h2 data-i18n="dataT"></h2><p class="muted" data-i18n="dataS"></p>
+<div class="actions">
+<button class="btn" id="csvBtn" data-i18n="csv"></button>
+<button class="btn" id="backupBtn" data-i18n="backup"></button>
+<button class="btn ghost" id="restoreBtn" data-i18n="restore"></button>
+<button class="btn danger" id="wipeBtn" data-i18n="wipe"></button>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+</div>
+</section>
+</main>
+<dialog id="dlg"><form id="expenseForm" autocomplete="off">
+<div class="dlg-head"><h2 id="formTitle"></h2><button type="button" class="icon-btn" id="closeBtn" data-i18n-aria="close">×</button></div>
+<div class="dlg-body">
+<input type="hidden" id="editId">
+<div class="two">
+<label><span data-i18n="cDate"></span><input type="date" id="date" required></label>
+<label><span id="amtLabel"></span><input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required></label>
+</div>
+<label><span data-i18n="cDesc"></span><input type="text" id="desc" data-i18n-ph="fDescPh" required maxlength="80"></label>
+<label><span data-i18n="cCat"></span><select id="category"></select></label>
+<label><span data-i18n="fNote"></span><textarea id="note" rows="2" maxlength="200" data-i18n-ph="fNotePh"></textarea></label>
+</div>
+<div class="dlg-foot"><button type="button" class="btn ghost" id="cancelBtn" data-i18n="cancel"></button><button type="submit" class="btn primary" id="saveBtn"></button></div>
+</form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+var KEY="gider-takip-v2",OLD="gider-takip-v1",BUD="gider-takip-budgets-v2",NAM="gider-takip-budget-names-v2",THM="gider-takip-theme",LNG="gider-takip-lang",CUR="gider-takip-currency";
+const CK=["Market","Ulaşım","Fatura","Kira","Eğlence","Sağlık","Giyim","Diğer"];
+const COL=["#22c55e","#0ea5e9","#f59e0b","#8b5cf6","#ec4899","#14b8a6","#f97316","#64748b"];
+const LANGS=[["tr","🇹🇷","Türkçe","tr-TR"],["en","🇬🇧","English","en-US"],["de","🇩🇪","Deutsch","de-DE"],["ar","🇸🇦","العربية","ar"],["ru","🇷🇺","Русский","ru-RU"],["fr","🇫🇷","Français","fr-FR"],["zh","🇨🇳","中文","zh-CN"],["hi","🇮🇳","हिन्दी","hi-IN"],["ko","🇰🇷","한국어","ko-KR"],["es","🇪🇸","Español","es-ES"]].map(a=>({code:a[0],flag:a[1],name:a[2],locale:a[3]}));
+const CURS=[["TRY","🇹🇷","Turkish Lira"],["USD","🇺🇸","US Dollar"],["EUR","🇪🇺","Euro"],["GBP","🇬🇧","Pound Sterling"],["SAR","🇸🇦","Saudi Riyal"],["RUB","🇷🇺","Russian Ruble"],["CNY","🇨🇳","Chinese Yuan"],["INR","🇮🇳","Indian Rupee"],["KRW","🇰🇷","South Korean Won"]];
+const CLR={tr:"Market,Ulaşım,Fatura,Kira,Eğlence,Sağlık,Giyim,Diğer",en:"Groceries,Transport,Bills,Rent,Entertainment,Health,Clothing,Other",de:"Lebensmittel,Verkehr,Rechnungen,Miete,Freizeit,Gesundheit,Kleidung,Sonstiges",ar:"بقالة,مواصلات,فواتير,إيجار,ترفيه,صحة,ملابس,أخرى",ru:"Продукты,Транспорт,Счета,Аренда,Развлечения,Здоровье,Одежда,Прочее",fr:"Courses,Transport,Factures,Loyer,Loisirs,Santé,Vêtements,Autres",zh:"食品杂货,交通,账单,房租,娱乐,健康,服装,其他",hi:"किराना,परिवहन,बिल,किराया,मनोरंजन,स्वास्थ्य,कपड़े,अन्य",ko:"식료품,교통,공과금,월세,여가,건강,의류,기타",es:"Supermercado,Transporte,Facturas,Alquiler,Ocio,Salud,Ropa,Otros"};
+const CL={};for(const c in CLR)CL[c]=CLR[c].split(",");
+const KEYS="appName appSub today add theme prev next monthAria close langLabel curLabel trendT trendS donutT donutS budgetT budgetS insT insS listT search sMonth sAll sAllC sNew sOld sHi sLo cDate cDesc cCat cAmt dataT dataS csv backup restore wipe fDescPh fNote fNotePh cancel save editT tMonth tAll tCount vsPrev daily topCat noData edit del delAsk wipeAsk restoreAsk restoreErr saved deleted empty insBig insTop insAvg insFc insOver insNear left over noLimit".split(" ");
+const T={
+en:"Expense Tracker|Track your spending, keep your budget|Today|+ New expense|Toggle theme|Previous month|Next month|Pick month|Close|Language|Currency|Last 6 months|Click a bar to select that month|Category breakdown|Shares for the selected month|Monthly budgets|Set a monthly limit per category. Click a name to rename it.|Highlights|Automatic analysis for the selected month|Expenses|Search description or note|Selected month|All records|All categories|Newest|Oldest|Amount (high)|Amount (low)|Date|Description|Category|Amount|Data management|Your data is stored only in this browser. Back it up regularly.|Download CSV|Download backup (JSON)|Restore from backup|Delete all data|e.g. Weekly groceries|Note (optional)|Extra info, receipt no…|Cancel|Save|Edit expense|Total this month|All-time total|Records|{p} vs last month|Daily average|Top category|No data|Edit|Delete|Delete this expense?|Delete ALL expenses and budgets? This cannot be undone.|Restoring will replace current data. Continue?|Invalid backup file.|Saved.|Deleted.|No expenses match this filter.|Largest expense: {d} ({a})|Top category: {c} ({a}, {p}%)|Average per entry: {a}|Projected month-end total: {a}|{c} is over budget by {a}|{c} has used {p}% of its limit|left|over|No limit set",
+tr:"Gider Takip|Harcamalarını takip et, bütçeni koru|Bugün|+ Yeni gider|Temayı değiştir|Önceki ay|Sonraki ay|Ay seç|Kapat|Dil|Para birimi|Son 6 ay|Ayı seçmek için bir sütuna tıkla|Kategori dağılımı|Seçili ayın payları|Aylık bütçeler|Kategori başına aylık limit belirle. Adı değiştirmek için ada tıkla.|Öne çıkanlar|Seçili ay için otomatik analiz|Giderler|Açıklama veya not ara|Seçili ay|Tüm kayıtlar|Tüm kategoriler|En yeni|En eski|Tutar (yüksek)|Tutar (düşük)|Tarih|Açıklama|Kategori|Tutar|Veri yönetimi|Veriler yalnızca bu tarayıcıda saklanır. Düzenli yedek al.|CSV indir|Yedek indir (JSON)|Yedekten yükle|Tüm verileri sil|Örn. Haftalık market|Not (isteğe bağlı)|Ek bilgi, fiş no…|İptal|Kaydet|Gideri düzenle|Bu ay toplam|Tüm zamanlar|Kayıt sayısı|geçen aya göre {p}|Günlük ortalama|En çok harcanan kategori|Veri yok|Düzenle|Sil|Bu gider silinsin mi?|Tüm giderler ve bütçeler silinsin mi? Geri alınamaz.|Yedekten yükleme mevcut verilerin yerine geçer. Devam edilsin mi?|Geçersiz yedek dosyası.|Kaydedildi.|Silindi.|Bu filtreye uyan gider yok.|En büyük gider: {d} ({a})|En çok harcanan kategori: {c} ({a}, %{p})|Kayıt başına ortalama: {a}|Ay sonu tahmini toplam: {a}|{c} bütçeyi {a} aştı|{c} limitinin %{p} kadarını kullandı|kaldı|aşıldı|Limit yok",
+de:"Ausgabentracker|Ausgaben im Blick, Budget im Griff|Heute|+ Neue Ausgabe|Design wechseln|Vorheriger Monat|Nächster Monat|Monat wählen|Schließen|Sprache|Währung|Letzte 6 Monate|Balken anklicken, um den Monat zu wählen|Kategorieverteilung|Anteile des gewählten Monats|Monatsbudgets|Lege pro Kategorie ein Monatslimit fest. Namen anklicken zum Umbenennen.|Highlights|Automatische Analyse für den gewählten Monat|Ausgaben|Beschreibung oder Notiz suchen|Gewählter Monat|Alle Einträge|Alle Kategorien|Neueste|Älteste|Betrag (hoch)|Betrag (niedrig)|Datum|Beschreibung|Kategorie|Betrag|Datenverwaltung|Daten werden nur in diesem Browser gespeichert. Sichere sie regelmäßig.|CSV herunterladen|Backup herunterladen (JSON)|Aus Backup wiederherstellen|Alle Daten löschen|z. B. Wocheneinkauf|Notiz (optional)|Zusatzinfo, Belegnr. …|Abbrechen|Speichern|Ausgabe bearbeiten|Summe diesen Monat|Gesamtsumme|Einträge|{p} zum Vormonat|Tagesdurchschnitt|Top-Kategorie|Keine Daten|Bearbeiten|Löschen|Diese Ausgabe löschen?|ALLE Ausgaben und Budgets löschen? Nicht rückgängig zu machen.|Wiederherstellen ersetzt die aktuellen Daten. Fortfahren?|Ungültige Backup-Datei.|Gespeichert.|Gelöscht.|Keine Ausgaben für diesen Filter.|Größte Ausgabe: {d} ({a})|Top-Kategorie: {c} ({a}, {p} %)|Durchschnitt pro Eintrag: {a}|Prognose Monatsende: {a}|{c} überschreitet das Budget um {a}|{c} hat {p} % des Limits genutzt|übrig|überschritten|Kein Limit gesetzt",
+ar:"متتبع المصروفات|تابع إنفاقك وحافظ على ميزانيتك|اليوم|+ مصروف جديد|تبديل المظهر|الشهر السابق|الشهر التالي|اختر الشهر|إغلاق|اللغة|العملة|آخر 6 أشهر|انقر على عمود لاختيار الشهر|توزيع الفئات|حصص الشهر المحدد|الميزانيات الشهرية|حدد حدًا شهريًا لكل فئة. انقر على الاسم لتغييره.|أبرز النقاط|تحليل تلقائي للشهر المحدد|المصروفات|ابحث في الوصف أو الملاحظة|الشهر المحدد|كل السجلات|كل الفئات|الأحدث|الأقدم|المبلغ (الأعلى)|المبلغ (الأدنى)|التاريخ|الوصف|الفئة|المبلغ|إدارة البيانات|تُحفظ بياناتك في هذا المتصفح فقط. خذ نسخة احتياطية بانتظام.|تنزيل CSV|تنزيل نسخة احتياطية (JSON)|استعادة من نسخة احتياطية|حذف كل البيانات|مثال: مشتريات البقالة|ملاحظة (اختياري)|معلومات إضافية، رقم الإيصال…|إلغاء|حفظ|تعديل المصروف|إجمالي هذا الشهر|الإجمالي الكلي|عدد السجلات|{p} مقارنة بالشهر الماضي|المتوسط اليومي|أعلى فئة إنفاقًا|لا توجد بيانات|تعديل|حذف|هل تريد حذف هذا المصروف؟|حذف جميع المصروفات والميزانيات؟ لا يمكن التراجع.|ستستبدل الاستعادة البيانات الحالية. المتابعة؟|ملف نسخة احتياطية غير صالح.|تم الحفظ.|تم الحذف.|لا توجد مصروفات تطابق هذا الفلتر.|أكبر مصروف: {d} ({a})|أعلى فئة: {c} ({a}، {p}%)|متوسط كل سجل: {a}|الإجمالي المتوقع نهاية الشهر: {a}|تجاوزت {c} الميزانية بمقدار {a}|استخدمت {c} {p}% من حدها|متبقٍ|متجاوز|لم يُحدد حد",
+ru:"Учёт расходов|Следите за тратами и держите бюджет|Сегодня|+ Новый расход|Сменить тему|Предыдущий месяц|Следующий месяц|Выбрать месяц|Закрыть|Язык|Валюта|Последние 6 месяцев|Нажмите на столбец, чтобы выбрать месяц|Распределение по категориям|Доли за выбранный месяц|Ежемесячные бюджеты|Задайте месячный лимит для категории. Нажмите на название, чтобы изменить его.|Главное|Автоматический анализ за выбранный месяц|Расходы|Поиск по описанию или заметке|Выбранный месяц|Все записи|Все категории|Сначала новые|Сначала старые|Сумма (больше)|Сумма (меньше)|Дата|Описание|Категория|Сумма|Управление данными|Данные хранятся только в этом браузере. Делайте резервные копии.|Скачать CSV|Скачать копию (JSON)|Восстановить из копии|Удалить все данные|Напр. покупки на неделю|Заметка (необязательно)|Доп. информация, № чека…|Отмена|Сохранить|Редактировать расход|Итого за месяц|Итого за всё время|Записей|{p} к прошлому месяцу|Среднее в день|Главная категория|Нет данных|Изменить|Удалить|Удалить этот расход?|Удалить ВСЕ расходы и бюджеты? Это нельзя отменить.|Восстановление заменит текущие данные. Продолжить?|Неверный файл копии.|Сохранено.|Удалено.|Нет расходов по этому фильтру.|Крупнейший расход: {d} ({a})|Главная категория: {c} ({a}, {p}%)|Среднее на запись: {a}|Прогноз на конец месяца: {a}|{c}: превышение бюджета на {a}|{c}: использовано {p}% лимита|осталось|превышено|Лимит не задан",
+fr:"Suivi des dépenses|Suivez vos dépenses, respectez votre budget|Aujourd'hui|+ Nouvelle dépense|Changer le thème|Mois précédent|Mois suivant|Choisir le mois|Fermer|Langue|Devise|6 derniers mois|Cliquez sur une barre pour choisir ce mois|Répartition par catégorie|Parts du mois sélectionné|Budgets mensuels|Définissez une limite mensuelle par catégorie. Cliquez sur un nom pour le modifier.|Points clés|Analyse automatique du mois sélectionné|Dépenses|Rechercher dans la description ou la note|Mois sélectionné|Toutes les entrées|Toutes les catégories|Plus récentes|Plus anciennes|Montant (décroissant)|Montant (croissant)|Date|Description|Catégorie|Montant|Gestion des données|Vos données sont stockées uniquement dans ce navigateur. Faites des sauvegardes régulières.|Télécharger le CSV|Télécharger la sauvegarde (JSON)|Restaurer une sauvegarde|Supprimer toutes les données|ex. courses de la semaine|Note (facultatif)|Infos, n° de ticket…|Annuler|Enregistrer|Modifier la dépense|Total du mois|Total global|Entrées|{p} par rapport au mois dernier|Moyenne journalière|Catégorie principale|Aucune donnée|Modifier|Supprimer|Supprimer cette dépense ?|Supprimer TOUTES les dépenses et budgets ? Action irréversible.|La restauration remplacera les données actuelles. Continuer ?|Fichier de sauvegarde invalide.|Enregistré.|Supprimé.|Aucune dépense ne correspond à ce filtre.|Plus grosse dépense : {d} ({a})|Catégorie principale : {c} ({a}, {p} %)|Moyenne par entrée : {a}|Total prévu en fin de mois : {a}|{c} dépasse le budget de {a}|{c} a utilisé {p} % de sa limite|restant|dépassé|Aucune limite",
+zh:"支出记录|记录开销，守住预算|今天|+ 新增支出|切换主题|上个月|下个月|选择月份|关闭|语言|货币|最近 6 个月|点击柱状图选择该月|分类占比|所选月份的占比|每月预算|为每个分类设置月度上限。点击名称可重命名。|重点提示|所选月份的自动分析|支出明细|搜索描述或备注|所选月份|全部记录|全部分类|最新|最早|金额（从高到低）|金额（从低到高）|日期|描述|分类|金额|数据管理|数据仅保存在此浏览器中，请定期备份。|下载 CSV|下载备份（JSON）|从备份恢复|删除所有数据|例如：每周采购|备注（可选）|补充信息、小票号等|取消|保存|编辑支出|本月合计|全部合计|记录数|较上月 {p}|日均支出|支出最多的分类|暂无数据|编辑|删除|确定删除这条支出？|确定删除所有支出和预算？无法撤销。|恢复将替换当前数据，是否继续？|备份文件无效。|已保存。|已删除。|没有符合此筛选的支出。|最大支出：{d}（{a}）|支出最多的分类：{c}（{a}，{p}%）|每条平均：{a}|预计月末总额：{a}|{c} 超出预算 {a}|{c} 已使用上限的 {p}%|剩余|超支|未设置上限",
+hi:"खर्च ट्रैकर|खर्च पर नज़र रखें, बजट में रहें|आज|+ नया खर्च|थीम बदलें|पिछला महीना|अगला महीना|महीना चुनें|बंद करें|भाषा|मुद्रा|पिछले 6 महीने|महीना चुनने के लिए कॉलम पर क्लिक करें|श्रेणी वितरण|चुने हुए महीने का हिस्सा|मासिक बजट|हर श्रेणी की मासिक सीमा तय करें। नाम बदलने के लिए उस पर क्लिक करें।|मुख्य बातें|चुने हुए महीने का स्वचालित विश्लेषण|खर्च|विवरण या नोट खोजें|चुना हुआ महीना|सभी रिकॉर्ड|सभी श्रेणियाँ|नवीनतम|सबसे पुराना|राशि (अधिक)|राशि (कम)|तारीख|विवरण|श्रेणी|राशि|डेटा प्रबंधन|डेटा केवल इस ब्राउज़र में सहेजा जाता है। नियमित बैकअप लें।|CSV डाउनलोड करें|बैकअप डाउनलोड करें (JSON)|बैकअप से पुनर्स्थापित करें|सारा डेटा मिटाएँ|जैसे साप्ताहिक किराना|नोट (वैकल्पिक)|अतिरिक्त जानकारी, रसीद नंबर…|रद्द करें|सहेजें|खर्च संपादित करें|इस महीने का कुल|कुल योग|रिकॉर्ड|पिछले महीने से {p}|दैनिक औसत|सबसे अधिक खर्च वाली श्रेणी|कोई डेटा नहीं|संपादित करें|हटाएँ|यह खर्च हटाएँ?|सारे खर्च और बजट हटाएँ? यह वापस नहीं होगा।|पुनर्स्थापित करने से मौजूदा डेटा बदल जाएगा। जारी रखें?|अमान्य बैकअप फ़ाइल।|सहेजा गया।|हटाया गया।|इस फ़िल्टर से कोई खर्च मेल नहीं खाता।|सबसे बड़ा खर्च: {d} ({a})|शीर्ष श्रेणी: {c} ({a}, {p}%)|प्रति प्रविष्टि औसत: {a}|महीने के अंत का अनुमानित कुल: {a}|{c} बजट से {a} अधिक है|{c} ने सीमा का {p}% उपयोग किया|शेष|अधिक|कोई सीमा नहीं",
+ko:"지출 관리|지출을 기록하고 예산을 지키세요|오늘|+ 새 지출|테마 전환|이전 달|다음 달|월 선택|닫기|언어|통화|최근 6개월|막대를 클릭해 해당 월을 선택하세요|카테고리별 비중|선택한 달의 지출 비중|월별 예산|카테고리마다 월 한도를 정하세요. 이름을 클릭하면 바꿀 수 있어요.|주요 내용|선택한 달의 자동 분석|지출 내역|설명 또는 메모 검색|선택한 달|전체 기록|모든 카테고리|최신순|오래된순|금액 높은순|금액 낮은순|날짜|설명|카테고리|금액|데이터 관리|데이터는 이 브라우저에만 저장됩니다. 정기적으로 백업하세요.|CSV 다운로드|백업 다운로드 (JSON)|백업에서 복원|모든 데이터 삭제|예: 주간 장보기|메모 (선택)|추가 정보, 영수증 번호 등|취소|저장|지출 수정|이번 달 합계|전체 합계|기록 수|지난달 대비 {p}|일 평균|가장 많이 쓴 카테고리|데이터 없음|수정|삭제|이 지출을 삭제할까요?|모든 지출과 예산을 삭제할까요? 되돌릴 수 없습니다.|복원하면 현재 데이터가 대체됩니다. 계속할까요?|잘못된 백업 파일입니다.|저장되었습니다.|삭제되었습니다.|이 필터에 맞는 지출이 없습니다.|가장 큰 지출: {d} ({a})|최다 지출 카테고리: {c} ({a}, {p}%)|건당 평균: {a}|월말 예상 합계: {a}|{c} 예산을 {a} 초과했습니다|{c} 한도의 {p}%를 사용했습니다|남음|초과|한도 미설정",
+es:"Control de gastos|Controla tus gastos y mantén tu presupuesto|Hoy|+ Nuevo gasto|Cambiar tema|Mes anterior|Mes siguiente|Elegir mes|Cerrar|Idioma|Moneda|Últimos 6 meses|Haz clic en una barra para elegir ese mes|Desglose por categoría|Proporciones del mes seleccionado|Presupuestos mensuales|Define un límite mensual por categoría. Haz clic en un nombre para cambiarlo.|Destacados|Análisis automático del mes seleccionado|Gastos|Buscar en descripción o nota|Mes seleccionado|Todos los registros|Todas las categorías|Más recientes|Más antiguos|Importe (mayor)|Importe (menor)|Fecha|Descripción|Categoría|Importe|Gestión de datos|Tus datos se guardan solo en este navegador. Haz copias de seguridad.|Descargar CSV|Descargar copia (JSON)|Restaurar desde copia|Borrar todos los datos|p. ej. compra semanal|Nota (opcional)|Información extra, n.º de ticket…|Cancelar|Guardar|Editar gasto|Total de este mes|Total histórico|Registros|{p} respecto al mes pasado|Media diaria|Categoría principal|Sin datos|Editar|Borrar|¿Borrar este gasto?|¿Borrar TODOS los gastos y presupuestos? No se puede deshacer.|Restaurar reemplazará los datos actuales. ¿Continuar?|Archivo de copia no válido.|Guardado.|Borrado.|Ningún gasto coincide con este filtro.|Gasto mayor: {d} ({a})|Categoría principal: {c} ({a}, {p}%)|Media por registro: {a}|Total previsto a final de mes: {a}|{c} supera el presupuesto en {a}|{c} ha usado el {p}% de su límite|restante|excedido|Sin límite"};
+const D={};for(const c in T){const v=T[c].split("|");D[c]={};KEYS.forEach((k,i)=>{D[c][k]=v[i]})}
+
+const $=id=>document.getElementById(id);
+let lang=localStorage.getItem(LNG);if(!D[lang])lang="en";
+let cur=localStorage.getItem(CUR);if(!CURS.some(c=>c[0]===cur))cur="TRY";
+const loc=()=>LANGS.find(l=>l.code===lang).locale;
+const t=k=>D[lang][k]!=null?D[lang][k]:D.en[k];
+const tf=(k,o)=>t(k).replace(/\{(\w)\}/g,(_,n)=>o[n]!=null?o[n]:"");
+const cn=k=>CL[lang][CK.indexOf(k)]||k;
+const cc=k=>COL[CK.indexOf(k)]||COL[7];
+const nf=o=>new Intl.NumberFormat(loc(),o);
+const money=n=>nf({style:"currency",currency:cur}).format(n);
+const compact=n=>nf({notation:"compact",maximumFractionDigits:1}).format(n);
+const pct=n=>nf({maximumFractionDigits:0}).format(n);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const thisM=()=>iso().slice(0,7);
+const shift=(ym,n)=>{const[y,m]=ym.split("-").map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
+const mLabel=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString(loc(),{month:"long",year:"numeric"})};
+const mShort=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString(loc(),{month:"short"})};
+const fmtDate=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString(loc(),{day:"2-digit",month:"2-digit",year:"numeric"})};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const sum=a=>a.reduce((s,e)=>s+e.amount,0);
+
+// Validation: used for stored data and imported backups
+function okDate(s){if(typeof s!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const[y,m,d]=s.split("-").map(Number),x=new Date(y,m-1,d);return y>=1900&&y<=2100&&x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
+const okExp=e=>e&&typeof e==="object"&&okDate(e.date)&&typeof e.desc==="string"&&e.desc.trim()&&Number.isFinite(Number(e.amount))&&Number(e.amount)>0;
+const norm=e=>({id:String(e.id||uid()).slice(0,40),date:e.date,desc:e.desc.trim().slice(0,80),amount:Math.round(Number(e.amount)*100)/100,category:CK.includes(e.category)?e.category:"Diğer",note:typeof e.note==="string"?e.note.slice(0,200):""});
+function clean(arr){const seen=new Set();return(Array.isArray(arr)?arr:[]).filter(okExp).map(norm).map(e=>{if(seen.has(e.id))e.id=uid();seen.add(e.id);return e})}
+function cleanB(o){const r={};if(o&&typeof o==="object")CK.forEach(k=>{const v=Number(o[k]);if(v>0&&isFinite(v))r[k]=v});return r}
+function cleanN(o){const r={};if(o&&typeof o==="object")CK.forEach(k=>{if(typeof o[k]==="string"&&o[k].trim())r[k]=o[k].trim().slice(0,30)});return r}
+const rj=(k,fb)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?fb:v}catch(e){return fb}};
+
+let expenses=clean(rj(KEY,null)||rj(OLD,[]));
+let budgets=cleanB(rj(BUD,{}));
+let names=cleanN(rj(NAM,{}));
+let st={month:thisM(),scope:"month",cat:"",sort:"date-desc",q:""};
+let dlgEdit=false;
+const saveE=()=>localStorage.setItem(KEY,JSON.stringify(expenses));
+const saveB=()=>{localStorage.setItem(BUD,JSON.stringify(budgets));localStorage.setItem(NAM,JSON.stringify(names))};
+const mi=ym=>expenses.filter(e=>e.date.startsWith(ym));
+function toast(m){const el=$("toast");el.textContent=m;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),2200)}
+
+// Custom month picker: names come from Intl, so they always follow the selected language
+function syncMonth(){
+const[y,m]=st.month.split("-").map(Number),cy=new Date().getFullYear();
+let lo=Math.min(cy-5,y),hi=Math.max(cy+1,y);
+expenses.forEach(e=>{const ey=+e.date.slice(0,4);if(ey<lo)lo=ey;if(ey>hi)hi=ey});
+const key=lang+"|"+lo+"|"+hi;
+if(syncMonth.key!==key){
+syncMonth.key=key;
+const mf=new Intl.DateTimeFormat(loc(),{month:"long"}),yf=nf({useGrouping:false});
+$("mSel").innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${esc(mf.format(new Date(2000,i,1)))}</option>`).join("");
+let ys="";for(let v=lo;v<=hi;v++)ys+=`<option value="${v}">${yf.format(v)}</option>`;
+$("ySel").innerHTML=ys}
+$("mSel").value=m;$("ySel").value=y}
+
+function applyStatic(){
+document.documentElement.lang=lang;
+document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+document.title=t("appName");
+document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=t(el.dataset.i18n)});
+document.querySelectorAll("[data-i18n-ph]").forEach(el=>{el.placeholder=t(el.dataset.i18nPh)});
+document.querySelectorAll("[data-i18n-aria]").forEach(el=>{el.setAttribute("aria-label",t(el.dataset.i18nAria))});
+document.querySelectorAll("[data-i18n-title]").forEach(el=>{el.title=t(el.dataset.i18nTitle)});
+$("langSel").innerHTML=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join("");
+$("langSel").value=lang;
+$("curSel").innerHTML=CURS.map(c=>`<option value="${c[0]}">${c[1]} ${c[0]} · ${c[2]}</option>`).join("");
+$("curSel").value=cur;
+const sym=nf({style:"currency",currency:cur,currencyDisplay:"narrowSymbol"}).formatToParts(0).find(p=>p.type==="currency");
+const s=sym?sym.value:cur;$("logo").textContent=s;$("logo").style.fontSize=s.length>2?".7rem":"";
+$("catFilter").innerHTML=`<option value="">${esc(t("sAllC"))}</option>`+CK.map(k=>`<option value="${k}">${esc(cn(k))}</option>`).join("");
+$("catFilter").value=st.cat;
+// Keep the dialog's selected category when the list is rebuilt (fixes category reset on edit)
+const keep=$("category").value;
+$("category").innerHTML=CK.map(k=>`<option value="${k}">${esc(cn(k))}</option>`).join("");
+$("category").value=keep||CK[0];
+$("amtLabel").textContent=t("cAmt")+" ("+cur+")";
+$("scope").value=st.scope;$("sortBy").value=st.sort;$("search").value=st.q;
+$("saveBtn").textContent=dlgEdit?t("save"):t("add").replace("+ ","");
+$("formTitle").textContent=dlgEdit?t("editT"):t("add").replace("+ ","");
+}
+
+function render(){
+syncMonth();
+const items=mi(st.month),ms=sum(items),ps=sum(mi(shift(st.month,-1))),as=sum(expenses);
+const by={};items.forEach(e=>{by[e.category]=(by[e.category]||0)+e.amount});
+const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+const[y,m]=st.month.split("-").map(Number),dim=new Date(y,m,0).getDate(),now=st.month===thisM(),dn=now?new Date().getDate():dim,daily=ms/Math.max(dn,1);
+let delta="";
+if(ps>0){const d=(ms-ps)/ps*100;delta=`<span class="badge ${d>0?"up":"down"}">${esc(tf("vsPrev",{p:(d>0?"+":"")+pct(d)+"%"}))}</span>`}
+$("stats").innerHTML=`<div class="stat"><div class="label">${t("tMonth")}</div><div class="value">${money(ms)}</div>${delta}</div>
+<div class="stat"><div class="label">${t("daily")}</div><div class="value">${money(daily)}</div><div class="muted">${esc(mLabel(st.month))}</div></div>
+<div class="stat"><div class="label">${t("topCat")}</div><div class="value">${cats.length?esc(cn(cats[0][0])):"—"}</div><div class="muted">${cats.length?money(cats[0][1]):t("noData")}</div></div>
+<div class="stat"><div class="label">${t("tAll")}</div><div class="value">${money(as)}</div><div class="muted">${t("tCount")}: ${expenses.length}</div></div>`;
+const months=[];for(let i=5;i>=0;i--)months.push(shift(st.month,-i));
+const tot=months.map(mm=>sum(mi(mm))),mx=Math.max(...tot,1);
+$("trend").innerHTML=`<div class="trend-bars">`+months.map((mm,i)=>`<div class="tb ${mm===st.month?"act":""}" data-m="${mm}" title="${esc(mLabel(mm))}"><div class="tb-val">${tot[i]?compact(tot[i]):""}</div><div class="tb-col"><div style="height:${tot[i]/mx*100}%"></div></div><div class="tb-lbl">${esc(mShort(mm))}</div></div>`).join("")+`</div>`;
+let acc=0;
+$("donut").style.background=cats.length&&ms>0?"conic-gradient("+cats.map(([k,v])=>{const f=acc;acc+=v/ms*100;return `${cc(k)} ${f}% ${acc}%`}).join(",")+")":"var(--border)";
+$("donutCenter").innerHTML=`<small>${t("tMonth")}</small><strong>${money(ms)}</strong>`;
+$("legend").innerHTML=cats.length?cats.map(([k,v])=>`<div class="leg-row"><span class="dot" style="background:${cc(k)}"></span><span>${esc(cn(k))}</span><span class="amt">${money(v)}</span><span class="pct">${pct(v/ms*100)}%</span></div>`).join(""):`<div class="empty">${t("noData")}</div>`;
+$("budgets").innerHTML=CK.map((k,i)=>{
+const sp=by[k]||0,lim=budgets[k]||0,ratio=lim?sp/lim*100:0,cls=ratio>=100?"over":ratio>=80?"warn":"",left=lim-sp;
+const meta=lim?`${money(sp)} / ${money(lim)} · ${left>=0?money(left)+" "+t("left"):"<b>"+money(-left)+" "+t("over")+"</b>"}`:t("noLimit");
+return `<div class="b-row"><div class="b-head"><div class="b-name"><span class="dot" style="background:${COL[i]}"></span><input class="b-name-input" maxlength="30" data-cat="${k}" value="${esc(names[k]||cn(k))}" title="${esc(cn(k))}"></div><input class="b-input" type="number" min="0" step="0.01" data-limit="${k}" value="${lim||""}" placeholder="${esc(t("noLimit"))}"></div><div class="progress"><div class="${cls}" style="width:${Math.min(ratio,100)}%"></div></div><div class="b-meta">${meta}</div></div>`}).join("");
+const ins=[];
+if(items.length){
+const big=items.reduce((a,b)=>b.amount>a.amount?b:a);
+ins.push(tf("insBig",{d:esc(big.desc),a:money(big.amount)}));
+if(cats.length)ins.push(tf("insTop",{c:esc(cn(cats[0][0])),a:money(cats[0][1]),p:pct(cats[0][1]/ms*100)}));
+ins.push(tf("insAvg",{a:money(ms/items.length)}));
+if(now)ins.push(tf("insFc",{a:money(daily*dim)}));
+CK.forEach(k=>{const lim=budgets[k]||0,sp=by[k]||0,n=esc(names[k]||cn(k));if(!lim)return;
+if(sp>lim)ins.push(tf("insOver",{c:n,a:money(sp-lim)}));else if(sp>=lim*.8)ins.push(tf("insNear",{c:n,p:pct(sp/lim*100)}))})
+}else ins.push(t("noData"));
+$("insights").innerHTML=ins.map((x,i)=>`<li><span class="ins-ic">${i+1}</span><span>${x}</span></li>`).join("");
+renderList();
+}
+
+function list(){
+const q=st.q.trim().toLowerCase();
+return expenses.filter(e=>st.scope==="all"||e.date.startsWith(st.month)).filter(e=>!st.cat||e.category===st.cat)
+.filter(e=>!q||(e.desc+" "+e.note).toLowerCase().includes(q))
+.sort((a,b)=>st.sort==="date-asc"?a.date.localeCompare(b.date):st.sort==="amount-desc"?b.amount-a.amount:st.sort==="amount-asc"?a.amount-b.amount:b.date.localeCompare(a.date))}
+function renderList(){
+const l=list();
+$("rows").innerHTML=l.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${esc(e.desc)}${e.note?`<div class="note">${esc(e.note)}</div>`:""}</td><td><span class="chip" style="background:${cc(e.category)}">${esc(cn(e.category))}</span></td><td class="amt">${money(e.amount)}</td><td class="acts"><button class="btn sm ghost" data-edit="${esc(e.id)}">${t("edit")}</button><button class="btn sm danger" data-del="${esc(e.id)}">${t("del")}</button></td></tr>`).join("");
+$("empty").style.display=l.length?"none":"block";
+$("empty").textContent=t("empty");
+$("listMeta").textContent=t("tCount")+": "+l.length+" · "+money(sum(l));
+}
+
+function openDlg(e){
+dlgEdit=!!e;
+applyStatic();
+$("editId").value=e?e.id:"";
+$("date").value=e?e.date:(st.month===thisM()?iso():st.month+"-01");
+$("desc").value=e?e.desc:"";
+$("amount").value=e?e.amount:"";
+$("category").value=e?e.category:CK[0];
+$("note").value=e?e.note:"";
+$("dlg").showModal();
+}
+function closeDlg(){$("dlg").close();dlgEdit=false;applyStatic()}
+$("expenseForm").addEventListener("submit",ev=>{
+ev.preventDefault();
+const d={date:$("date").value,desc:$("desc").value.trim(),amount:Math.round(parseFloat($("amount").value)*100)/100,category:$("category").value,note:$("note").value.trim()};
+if(!okExp(d))return;
+const id=$("editId").value;
+if(id){const it=expenses.find(x=>x.id===id);if(it)Object.assign(it,norm(Object.assign({id:id},d)))}
+else expenses.push(norm(Object.assign({id:uid()},d)));
+saveE();st.month=d.date.slice(0,7);closeDlg();render();toast(t("saved"));
+});
+$("rows").addEventListener("click",ev=>{
+const ed=ev.target.closest("[data-edit]"),del=ev.target.closest("[data-del]");
+if(ed){const e=expenses.find(x=>x.id===ed.dataset.edit);if(e)openDlg(e)}
+if(del&&confirm(t("delAsk"))){expenses=expenses.filter(x=>x.id!==del.dataset.del);saveE();render();toast(t("deleted"))}
+});
+$("trend").addEventListener("click",ev=>{const b=ev.target.closest("[data-m]");if(b){st.month=b.dataset.m;render()}});
+$("budgets").addEventListener("change",ev=>{
+const lim=ev.target.dataset.limit,nm=ev.target.dataset.cat;
+if(lim){const v=parseFloat(ev.target.value);if(v>0)budgets[lim]=v;else delete budgets[lim]}
+if(nm){const v=ev.target.value.trim().slice(0,30);if(v&&v!==cn(nm))names[nm]=v;else delete names[nm]}
+saveB();render();
+});
+$("budgets").addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target.dataset.cat)ev.target.blur()});
+const pick=()=>{st.month=$("ySel").value+"-"+String($("mSel").value).padStart(2,"0");render()};
+$("mSel").addEventListener("change",pick);$("ySel").addEventListener("change",pick);
+$("prevMonth").onclick=()=>{st.month=shift(st.month,-1);render()};
+$("nextMonth").onclick=()=>{st.month=shift(st.month,1);render()};
+$("todayBtn").onclick=()=>{st.month=thisM();render()};
+$("scope").addEventListener("change",e=>{st.scope=e.target.value;render()});
+$("catFilter").addEventListener("change",e=>{st.cat=e.target.value;render()});
+$("sortBy").addEventListener("change",e=>{st.sort=e.target.value;render()});
+$("search").addEventListener("input",e=>{st.q=e.target.value;renderList()});
+$("addBtn").onclick=()=>openDlg(null);
+$("closeBtn").onclick=closeDlg;$("cancelBtn").onclick=closeDlg;
+$("langSel").addEventListener("change",e=>{lang=e.target.value;localStorage.setItem(LNG,lang);applyStatic();render()});
+$("curSel").addEventListener("change",e=>{cur=e.target.value;localStorage.setItem(CUR,cur);applyStatic();render()});
+$("themeBtn").onclick=()=>{const n=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=n;localStorage.setItem(THM,n)};
+
+function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+// CSV cells starting with = + - @ are prefixed so spreadsheets do not run them as formulas
+const cell=c=>{c=String(c);if(/^[=+\-@]/.test(c))c="'"+c;return '"'+c.replace(/"/g,'""')+'"'};
+$("csvBtn").onclick=()=>{
+const rows=[[t("cDate"),t("cDesc"),t("cCat"),t("cAmt")+" ("+cur+")",t("fNote")]].concat(list().map(e=>[e.date,e.desc,cn(e.category),e.amount.toFixed(2),e.note]));
+dl(new Blob(["\uFEFF"+rows.map(r=>r.map(cell).join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`expenses-${st.scope==="all"?"all":st.month}.csv`);
+};
+$("backupBtn").onclick=()=>{
+dl(new Blob([JSON.stringify({app:"gider-takip",version:2,currency:cur,exportedAt:new Date().toISOString(),expenses,budgets,names},null,2)],{type:"application/json"}),`gider-yedek-${iso()}.json`);
+toast(t("saved"));
+};
+$("restoreBtn").onclick=()=>{if(confirm(t("restoreAsk")))$("importFile").click()};
+$("importFile").addEventListener("change",ev=>{
+const f=ev.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=()=>{
+try{
+const d=JSON.parse(r.result);
+if(!d||!Array.isArray(d.expenses))throw new Error("bad");
+expenses=clean(d.expenses);budgets=cleanB(d.budgets);names=cleanN(d.names||d.budgetNames);
+if(CURS.some(c=>c[0]===d.currency)){cur=d.currency;localStorage.setItem(CUR,cur)}
+saveE();saveB();applyStatic();render();toast(t("saved"));
+}catch(e){toast(t("restoreErr"))}
+ev.target.value="";
+};
+r.readAsText(f);
+});
+$("wipeBtn").onclick=()=>{
+if(!confirm(t("wipeAsk")))return;
+expenses=[];budgets={};names={};saveE();saveB();localStorage.removeItem(OLD);render();toast(t("deleted"));
+};
+document.addEventListener("keydown",e=>{
+if(e.key==="n"&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!$("dlg").open)openDlg(null);
+});
+
+const sv=localStorage.getItem(THM);
+document.documentElement.dataset.theme=sv==="dark"||sv==="light"?sv:(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+applyStatic();render();
+})();
+</script>
+</body>
+</html>
